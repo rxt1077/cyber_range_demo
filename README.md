@@ -1,16 +1,16 @@
-#Cyber Range Demo
+# Cyber Range Demo
 
-##Python Packages
+## Python Packages
 
 Python packages for this demo can be installed with `pip -r requirements.txt`.
 I'd recommend using a virtual environment.
 
-##Database
+## Database
 
 An sqlite3 database stored in database.db is used.
 If the file doesn't exist a new database will be created with the correct schema.
 
-##Images
+## Images
 
 A few Docker images are used in this demo.
 They can be built and tagged with:
@@ -22,6 +22,6 @@ They can be built and tagged with:
 It is expected that these images are built and locally available.
 They can be rebuilt at any time and new environments will make use of the updated images
 
-##Flask App
+## Flask App
 
 To run the development server: `flask --app server.py run`
