@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">CyberRange Demo</h1>
+<div class="block">
+  This demo has an index (you're here), three challenges, and a status page.
+  It demonstrates how a Flask app can be used in conjunction with Docker to spawn environments for offensive security practice.
+  The challenges are ordered in terms of back-end difficulty.
+</div>
+<div class="block">
+ <ul>
+  <li><a href="challenge1">Challenge 1</a></li>
+  <li><a href="challenge2">Challenge 2</a></li>
+  <li><a href="challenge3">Challenge 3</a></li>
+ </ul>
+</div>
+<div class="block"><a href="status">Status Page</a></div>
+{% endblock %}

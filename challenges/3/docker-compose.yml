@@ -1,0 +1,18 @@
+services:
+  vpn:
+    image: wg_vpn
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "51820/udp"
+    #    volumes:
+    #- "./wireguard.conf:/config/wireguard.conf"
+  dr_sneaky:
+    image: dr_sneaky
+    cap_add:
+      - NET_ADMIN
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: 10.3.13.0/24

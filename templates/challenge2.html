@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Challenge 2</h1>
+<div class="block">This challege is slightly more complex. For this challenge a webserver running in a single Docker container has been started.</div>
+<div class="block">
+  You'll find a webserver running <a href="http://{{ ip_addr }}:{{ port }}">here</a>.
+  It is serving an HTML file that has the flag in it.
+  Take a look around and see if you can find it.
+</div>
+<div class="block">The server will remain active for <span class="has-text-weight-bold">60 minutes</span>.</div>
+<div class="block">HINT: qveohfgre vf lbhe sevraq</div>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+    <h1 class="title">Challenge 3</h1>
+    <div class="block">
+	From a backend perspecting, this is the most complicated type of challenge yet.
+	Instead of using a simple web page or a single container, it uses a group of containers via <a href="https://docs.docker.com/compose/">Docker Compose</a> and allows the participant to VPN into the internal network.
+	This simulates a full environment, but it's going to be pretty hefty in terms of compute requirements.
+	You probably wouldn't want to do it for every challenge.
+    </div>
+    <div class="block">Use the following <a href="https://www.wireguard.com">WireGuard</a> configuration to connect to the network environment for this challenge:</div> 
+    <pre class="block">{{ wgconf }}</pre>
+    <div class="block">This environment will remain active for <span class="has-text-weight-bold">60 minutes</span></div>
+    <div class="block">
+	This will give you the IP address 10.3.13.37 on the container network (10.3.13.0/24).
+        Once you are connected, find the hostname of the &quot;stealth&quot; host on the network.
+	Its hostname is the flag.
+    </div>
+    <div class="block">HINT: aznc vf lbhe sevraq</div>
+{% endblock %}
