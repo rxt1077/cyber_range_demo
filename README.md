@@ -1,8 +1,12 @@
 # Cyber Range Demo
 
-## Python Packages
+## User environment
 
-Python packages for this demo can be installed with `pip -r requirements.txt`.
+Make sure this is run as a non-root user with access to Docker (in the docker group).
+
+## Python packages
+
+Python packages for this demo can be installed with `pip install -r requirements.txt`.
 I'd recommend using a virtual environment.
 
 ## Database
@@ -13,15 +17,17 @@ If the file doesn't exist a new database will be created with the correct schema
 ## Images
 
 A few Docker images are used in this demo.
-They can be built and tagged with:
+Since they are supposed to be built locally they are configured to never be pulled.
+This configuration is either in the `subprocess.run` parameters or in the `docker-compose.yml` file.
+There's a helper script to build the images: `build_images.sh`.
 
-* `cd challenges/2; docker build -t challenge2 .`
-* `cd challenges/3/wg_vpn; docker build -t wg_vpn .`
-* `cd challenges/3/dr_sneaky; docker build -t dr_sneaky .`
+When the server starts it's expected that these images are built and locally available.
+They can be rebuilt at any time and new environments will use the updated images.
 
-It is expected that these images are built and locally available.
-They can be rebuilt at any time and new environments will make use of the updated images
+## Running via the Flask development server
 
-## Flask App
+`flask --app server.py run`
 
-To run the development server: `flask --app server.py run`
+## Running via gunicorn
+
+`gunicorn -w 1 -b 0.0.0.0 'server:app'`

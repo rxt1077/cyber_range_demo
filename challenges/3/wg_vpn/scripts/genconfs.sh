@@ -16,7 +16,7 @@ PrivateKey = ${SERVER_PRIVATE_KEY}
 
 [Peer]
 PublicKey = ${CLIENT_PUBLIC_KEY}
-AllowedIPs = 10.3.13.37/32
+AllowedIPs = ${1}.37/32
 EOF
 
 echo "Outputing client configuration to screen"
@@ -26,7 +26,7 @@ cat <<EOF
 [Interface]
 PrivateKey = ${CLIENT_PRIVATE_KEY}
 ListenPort = 51820
-Address = 10.3.13.37/24
+Address = ${1}.37/16
 
 [Peer]
 PublicKey = ${SERVER_PUBLIC_KEY}

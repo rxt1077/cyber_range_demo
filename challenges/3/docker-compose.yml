@@ -5,14 +5,14 @@ services:
       - NET_ADMIN
     ports:
       - "51820/udp"
-    #    volumes:
-    #- "./wireguard.conf:/config/wireguard.conf"
+    pull_policy: never
   dr_sneaky:
     image: dr_sneaky
     cap_add:
       - NET_ADMIN
-networks:
-  default:
-    ipam:
-      config:
-        - subnet: 10.3.13.0/24
+    pull_policy: never
+#networks:
+#  default:
+#    ipam:
+#      config:
+#        - subnet: 10.3.13.0/24

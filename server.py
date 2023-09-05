@@ -3,12 +3,12 @@ security practice."""
 
 import subprocess
 import re
-import socket
 import uuid
 import os
 import functools
+from urllib.parse import urlparse
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from apscheduler.schedulers.background import BackgroundScheduler
 
 import db
@@ -24,9 +24,6 @@ if not os.path.isfile(DB_FILE):
     db.init(db_conn)
     db_conn.close()
 
-# this are used in some endpoints to give the user links
-hostname = socket.gethostname()
-ip_addr = socket.gethostbyname(hostname)
 
 app = Flask(__name__)
 
@@ -67,6 +64,27 @@ scheduler = BackgroundScheduler()
 scheduler.add_job(func=cleanup, trigger="interval", seconds=60)
 scheduler.start()
 
+def docker_get_port(container_id):
+    """Uses the docker command to get the external port for a container
+
+    We rely on it being randomly assigned so we can run multiple containers
+    and have each use a different port."""
+
+    # get the random port assigned to the container
+    port_process = subprocess.run(
+        ["docker", "port", container_id],
+        check=True,
+        capture_output=True,
+        text=True,
+        timeout=PROCESS_TIMEOUT,
+    )
+    # we may get a line for IPv4 and IPv6, we only need one of them
+    first_line = port_process.stdout.partition('\n')[0]
+    # match everything after the last :
+    result = re.search("^.*:(.*)$", first_line)
+    port = result.group(1)
+
+    return port
 
 def check_single(func):
     """Decorator to prevent creating a single-container environment if
@@ -79,7 +97,7 @@ def check_single(func):
         conn.close()
 
         if count >= MAX_SINGLE_ENVS:
-            print("Too many single-container environments running" "")
+            print("Too many single-container environments running")
             return render_template("toomany.html")
 
         return func(*args, **kwargs)
@@ -98,7 +116,7 @@ def check_multi(func):
         conn.close()
 
         if count >= MAX_MULTI_ENVS:
-            print("Too many multi-container environments running" "")
+            print("Too many multi-container environments running")
             return render_template("toomany.html")
 
         return func(*args, **kwargs)
@@ -142,7 +160,8 @@ def challenge2():
 
     print("Creating a single-container environment for challenge2")
     run_process = subprocess.run(
-        ["docker", "run", "-d", "-p", "80", "challenge2"],
+        ["docker", "run", "--pull", "never", "-d", "-p", "80", "challenge2"],
+        check=True,
         capture_output=True,
         text=True,
         timeout=PROCESS_TIMEOUT,
@@ -156,17 +175,11 @@ def challenge2():
     conn.close()
 
     # get the random port assigned to the container
-    port_process = subprocess.run(
-        ["docker", "port", container_id],
-        capture_output=True,
-        text=True,
-        timeout=PROCESS_TIMEOUT,
-    )
-    result = re.search("^.*:(.*)$", port_process.stdout)
-    port = result.group(1)
+    port = docker_get_port(container_id)
 
-    # this template needs our IP and the port to tell the user where to connect
-    return render_template("challenge2.html", ip_addr=ip_addr, port=port)
+    # this template needs our hostname and the port to tell the user where to connect
+    hostname = urlparse(request.base_url).hostname
+    return render_template("challenge2.html", hostname=hostname, port=port)
 
 
 @app.route("/challenge3")
@@ -182,6 +195,7 @@ def challenge3():
     # bring the whole thing up
     subprocess.run(
         ["docker", "compose", "-p", prefix, "up", "-d"],
+        check=True,
         timeout=PROCESS_TIMEOUT,
         cwd=local_dir,
     )
@@ -194,14 +208,7 @@ def challenge3():
 
     # figure out what port was allocated to the VPN service
     container_id = prefix + "-vpn-1"
-    port_process = subprocess.run(
-        ["docker", "port", container_id],
-        capture_output=True,
-        text=True,
-        timeout=PROCESS_TIMEOUT,
-    )
-    result = re.search("^.*:(.*)$", port_process.stdout)
-    port = result.group(1)
+    port = docker_get_port(container_id)
 
     # grab the generated wireguard config for the client from the container
     # logs (stdout)
@@ -223,6 +230,7 @@ def challenge3():
             client_config += line + "\n"
     # add the endpoint on the config
     # (requires a port num and IP which the container doesn't have)
-    client_config += f"Endpoint = {ip_addr}:{port}"
+    hostname = urlparse(request.base_url).hostname
+    client_config += f"Endpoint = {hostname}:{port}"
 
     return render_template("challenge3.html", wgconf=client_config)

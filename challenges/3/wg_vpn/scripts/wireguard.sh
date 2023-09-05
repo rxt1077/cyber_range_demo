@@ -2,9 +2,13 @@
 
 nl="\n-------------------------------------\n";
 
+# First 24 bits of the assigned Docker network
+DOCKER_NET_24=$( ip route show default | awk '{ print $3 }' | cut -d . -f 1-3 )
+
 # Check IP subnet for container:
 if [[ -z "${IP_WG_ENV}" ]]; then
-    IP_WG_ENV=10.3.13.0/24;
+     IP_WG_ENV=${DOCKER_NET_24}.0/16
+#    IP_WG_ENV=10.0.0.0/24;
 fi
 
 # Setup boringtun interface and start
@@ -44,7 +48,7 @@ fi
 printf "Setting network interface mtu... $(ip link set mtu 1420 qlen 1000 dev wg0)\n";
 
 # Create a new server/client configuration
-/data/genconfs.sh
+/data/genconfs.sh ${DOCKER_NET_24}
 
 # Set wireguard configuration
 if [[ -f /config/wireguard.conf ]]; then
@@ -57,8 +61,8 @@ fi
 # This brings up the wireguard interface inside the container
 printf "Bringing interface up... $(ip link set wg0 up)${nl}";
 
-print "Configuring routing for packets destined for VPN client..." 
-route add 10.3.13.37 dev wg0 
+printf "Configuring routing for packets destined for VPN client..." 
+route add ${DOCKER_NET_24}.37 dev wg0
 
 # Display the running configs
 printf "${nl}Active network interfaces:\n$(ip addr 2>&1)";
