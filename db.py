@@ -2,11 +2,14 @@
 
 import sqlite3
 
+DB_FILE = "database.db"
 
-def get_connection(db_name):
+
+def get_connection():
     """Gets a connection to the database stored in db_name"""
 
-    conn = sqlite3.connect(db_name)
+    conn = sqlite3.connect(DB_FILE)
+    conn.row_factory = sqlite3.Row
     conn.set_trace_callback(print)
     return conn
 
@@ -18,126 +21,168 @@ def init(conn):
 
     cur.executescript(
         """
-        DROP TABLE IF EXISTS single_envs;
+        DROP TABLE IF EXISTS challenges;
 
-        CREATE TABLE single_envs (
-          id           INTEGER PRIMARY KEY AUTOINCREMENT,
-          container_id TEXT NOT NULL,
-          start_time   TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          end_time     TIMESTAMP NOT NULL
+        CREATE TABLE challenges (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          user_id INTEGER NOT NULL,
+          url TEXT NOT NULL,
+          prompt TEXT NOT NULL,
+          end_cmd TEXT,
+          cwd TEXT,
+          FOREIGN KEY(user_id) REFERENCES users(id)
         );
 
-        DROP TABLE IF EXISTS multi_envs;
+        DROP TABLE IF EXISTS users;
 
-        CREATE TABLE multi_envs ( 
-          id         INTEGER PRIMARY KEY AUTOINCREMENT,
-          dir        TEXT NOT NULL,
-          prefix     TEXT NOT NULL,
-          start_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-          end_time   TIMESTAMP NOT NULL
-        );
+        CREATE TABLE users (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT UNIQUE NOT NULL,
+          password TEXT NOT NULL,
+          role INTEGER NOT NULL DEFAULT 0,
+          auto_logout_time TIMESTAMP DEFAULT NULL
+        )
     """
     )
 
 
-def add_multi(conn, directory, prefix, duration):
-    """Adds a multi-container environment to the multi_envs table"""
+def add_challenge(conn, user_id, url, prompt, end_cmd=None, cwd=None):
+    """Adds an active challenge to the challenges table"""
 
     cur = conn.cursor()
-
-    # https://stackoverflow.com/questions/62911225/query-parameter-binding-in-datetime-function-of-sqlite3
     cur.execute(
-        """
-        INSERT INTO multi_envs (dir, prefix, end_time)
-        VALUES (?, ?, DATETIME('now', ? || ' minutes'));
-        """,
-        (directory, prefix, duration),
+        "INSERT INTO challenges (user_id, url, prompt, end_cmd, cwd) VALUES (?, ?, ?, ?, ?);",
+        (user_id, url, prompt, end_cmd, cwd),
     )
 
 
-def get_expired_multi(conn):
-    """Returns a list of all multi-container environments that have expired"""
+def del_challenge(conn, user_id, url):
+    """Deletes a challenge based on user_id and url"""
+
+    cur = conn.cursor()
+    cur.execute("DELETE FROM challenges WHERE user_id=? and url=?;", (user_id, url))
+
+
+def get_challenge_count(conn, user_id):
+    """Returns an integer of how many challenges a user has active"""
+
+    cur = conn.cursor()
+    res = cur.execute("SELECT COUNT(id) FROM challenges WHERE user_id=?;", (user_id,))
+    return res.fetchone()[0]
+
+
+def get_user_challenges(conn, user_id):
+    """Returns a list of active challenges for a user"""
+
+    cur = conn.cursor()
+    res = cur.execute(
+        "SELECT url, end_cmd, cwd FROM challenges WHERE user_id=?;", (user_id,)
+    )
+    return res.fetchall()
+
+
+def get_active_challenge_prompt(conn, user_id):
+    """Returns prompt of the active challenge on None"""
+
+    cur = conn.cursor()
+    res = cur.execute("SELECT prompt FROM challenges WHERE user_id=?", (user_id,))
+
+    row = res.fetchone()
+    if row:
+        return row["prompt"]
+    return None
+
+
+def add_user(conn, name, password, role):
+    """Adds a user to the user table"""
+
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO users (name, password, role) VALUES (?, ?, ?);",
+        (name, password, role),
+    )
+
+
+def del_user(conn, user_id):
+    """Deletes a user from the user table"""
+
+    cur = conn.cursor()
+    cur.execute("DELETE FROM users WHERE id=?;", (user_id,))
+
+
+def get_user(conn, user_id):
+    """Retrieves a user by their id"""
 
     cur = conn.cursor()
 
     res = cur.execute(
-        "SELECT id, dir, prefix FROM multi_envs WHERE end_time < CURRENT_TIMESTAMP;"
+        """
+        SELECT id, name, role,
+        CAST(((JULIANDAY(auto_logout_time)-JULIANDAY('now')) * 24 * 60) AS INTEGER)
+        AS time_remaining
+        FROM users
+        WHERE id=?;
+    """,
+        (user_id,),
+    )
+    return res.fetchone()
+
+
+def get_all_users(conn):
+    """Retrieves information about all users for manage users endpoint"""
+
+    cur = conn.cursor()
+
+    res = cur.execute(
+        """
+        SELECT id, name, role,
+        CAST(((JULIANDAY(auto_logout_time)-JULIANDAY('now')) * 24 * 60) AS INTEGER)
+        AS time_remaining
+        FROM users;
+    """
     )
     return res.fetchall()
 
 
-def del_multi(conn, env_id):
-    """Removes a multi-container environment from the multi_envs table"""
+def get_user_by_name(conn, name):
+    """Retrieves a user by their username"""
 
     cur = conn.cursor()
 
-    cur.execute("DELETE FROM multi_envs WHERE id=?;", (env_id,))
+    res = cur.execute(
+        "SELECT id, name, password, role FROM users WHERE name=?;", (name,)
+    )
+    return res.fetchone()
 
 
-def add_single(conn, container_id, duration):
-    """Adds a single-container environment"""
+def set_auto_logout(conn, user_id, duration):
+    """Sets a user's automatic logout time"""
 
     cur = conn.cursor()
 
     cur.execute(
         """
-        INSERT INTO single_envs (container_id, end_time)
-        VALUES (?, DATETIME('now', ? || ' minutes'));
-        """,
-        (container_id, duration),
+        UPDATE users
+        SET auto_logout_time=DATETIME('now', ? || ' minutes')
+        WHERE id=?;""",
+        (duration, user_id),
     )
 
 
-def get_expired_single(conn):
-    """Returns a list of all single-container environments that have expired"""
+def clear_auto_logout(conn, user_id):
+    """Sets a user's automatic logout time to NULL"""
+
+    cur = conn.cursor()
+
+    cur.execute("UPDATE users SET auto_logout_time=NULL WHERE id=?;", (user_id,))
+
+
+def get_expired_users(conn):
+    """Gets a list of users who are past their auto logout time"""
 
     cur = conn.cursor()
 
     res = cur.execute(
-        "SELECT id, container_id FROM single_envs WHERE end_time < CURRENT_TIMESTAMP;"
+        "SELECT id FROM users WHERE auto_logout_time < CURRENT_TIMESTAMP;"
     )
-    return res.fetchall()
-
-
-def del_single(conn, env_id):
-    """Removes a single-container environment from the docker_envs table"""
-
-    cur = conn.cursor()
-
-    cur.execute("DELETE FROM single_envs WHERE id=?;", (env_id,))
-
-
-def get_single_count(conn):
-    """Returns a count of how many single-container environments are running"""
-
-    cur = conn.cursor()
-
-    res = cur.execute("SELECT COUNT(id) FROM single_envs;")
-    return res.fetchone()[0]
-
-
-def get_multi_count(conn):
-    """Returns a count of how many multi-container environments are running"""
-
-    cur = conn.cursor()
-
-    res = cur.execute("SELECT COUNT(id) FROM multi_envs;")
-    return res.fetchone()[0]
-
-
-def get_single_status(conn):
-    """Returns the rows of the single_envs table"""
-
-    cur = conn.cursor()
-
-    res = cur.execute("SELECT * FROM single_envs;")
-    return res.fetchall()
-
-
-def get_multi_status(conn):
-    """Returns the rows of the single_envs table"""
-
-    cur = conn.cursor()
-
-    res = cur.execute("SELECT * FROM multi_envs;")
     return res.fetchall()

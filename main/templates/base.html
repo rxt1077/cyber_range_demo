@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cyber Range</title>
+    <link rel="stylesheet" href="https://unpkg.com/bulmaswatch/cyborg/bulmaswatch.min.css">
+    <script src="https://kit.fontawesome.com/e481b34f90.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="custom.css">
+</head>
+<body>
+    <nav class="navbar" role="navigation" aria-label="main navigation">
+      <div class="navbar-brand">
+        <a class="navbar-item" href="/">
+          <img src="logo.png">
+        </a>
+      </div>
+
+      {% if current_user.is_authenticated %}
+      <div class="navbar-menu">
+        <div class="navbar-start">
+
+          {% if current_user.role == 1 %}
+          <a class="navbar-item" href="/manage_users">Manage Users</a>
+          {% endif %}
+
+          <a class="navbar-item" href="/challenges">Challenges</a>
+          
+        </div>
+
+        <div class="navbar-end">
+		<div class="navbar-item">{{ current_user.name }} has&nbsp;<span id="time_remaining">{{ current_user.time_remaining }}</span>&nbsp;minutes left</div>
+        </div>
+      </div>
+      <script>
+	time_remaining = {{ current_user.time_remaining }};
+	interval = setInterval(function() {
+	  document.getElementById("time_remaining").innerHTML = time_remaining;
+	  time_remaining--;
+          if (time_remaining < 0) {
+	    clearInterval(interval);
+	  }
+	}, 60000);
+      </script>
+      {% endif %}
+    </nav>
+    <section class="section">
+	    <div class="container">{% block content %}{% endblock %}</div>
+    </div>
+</body>
+</html>

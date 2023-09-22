@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Add User</h1>
+<form action="/add_user" method="post">
+  <div class="columns">
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Username</label>
+        <div class="control">
+          <input class="input" type="text" name="username">
+        </div>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Password</label>
+        <div class="control">
+          <input id="password" class="input" type="text" name="password">
+        </div>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Role</label>
+        <div class="control">
+          <div class="select">
+            <select name="role">
+              <option value="USER">Standard User</option>
+              <option value="ADMIN">Administrator</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="field is-grouped">
+    <div class="control">
+      <input class="button" type="button" onclick="generatePass()" value="Generate Random Password">
+    </div>
+    <div class="control">
+      <input class="button is-success" type="submit" value="Submit">
+    </div>
+  </div>
+
+</form>
+<script>
+/* Function to generate combination of password: https://www.geeksforgeeks.org/how-to-generate-a-random-password-using-javascript */
+function generatePass() {
+    let pass = '';
+    let str = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+ 
+    for (let i = 1; i <= 8; i++) {
+        let char = Math.floor(Math.random() * str.length + 1);
+        pass += str.charAt(char);
+    }
+
+    document.getElementById("password").value = pass;
+}
+</script>
+{% endblock %}

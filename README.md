@@ -3,6 +3,8 @@
 ## User environment
 
 Make sure this is run as a non-root user with access to Docker (in the docker group).
+Your environment will need SECRET_KEY defined for signing session cookies.
+You can put it in a `.env` file and generate it via `python -c 'import secrets; print(secrets.token_hex())'`
 
 ## Python packages
 

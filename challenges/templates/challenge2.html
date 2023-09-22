@@ -7,6 +7,13 @@
   It is serving an HTML file that has the flag in it.
   Take a look around and see if you can find it.
 </div>
-<div class="block">The server will remain active for <span class="has-text-weight-bold">60 minutes</span>.</div>
 <div class="block">HINT: qveohfgre vf lbhe sevraq</div>
+<form action="/stop_challenge" method="post">
+  <input class="input" type="hidden" name="url" value="/challenge2">
+  <div class="field">
+    <div class="control">
+      <input class="button is-danger" type="submit" value="Stop this Challenge">
+    </div>
+  </div>
+</form>
 {% endblock %}

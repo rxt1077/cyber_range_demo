@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Manage Users</h1>
+
+<h2 class="is-size-4">Add User</h2>
+<form action="/add_user" method="post">
+  <div class="columns">
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Username</label>
+        <div class="control">
+          <input class="input" type="text" name="username">
+        </div>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Password</label>
+        <div class="control">
+          <input id="password" class="input" type="text" name="password">
+        </div>
+      </div>
+    </div>
+
+    <div class="column">
+      <div class="field">
+        <label class="label">Role</label>
+        <div class="control">
+          <div class="select">
+            <select name="role">
+              <option value="USER">Standard User</option>
+              <option value="ADMIN">Administrator</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  
+  <div class="field is-grouped">
+    <div class="control">
+      <input class="button is-link" type="button" onclick="generatePass()" value="Generate Random Password">
+    </div>
+    <div class="control">
+      <input class="button is-success" type="submit" value="Create">
+    </div>
+  </div>
+
+</form>
+
+<script>
+/* Function to generate combination of password: https://www.geeksforgeeks.org/how-to-generate-a-random-password-using-javascript */
+function generatePass() {
+    let pass = '';
+    let str = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+ 
+    for (let i = 1; i <= 8; i++) {
+        let char = Math.floor(Math.random() * str.length + 1);
+        pass += str.charAt(char);
+    }
+
+    document.getElementById("password").value = pass;
+}
+</script>
+
+<br>
+<h2 class="is-size-4">Current Users</h2>
+<table class="table">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Name</th>
+      <th>Role</th>
+      <th>Logged In?</th>
+      <th>Active Challenges</th>
+      <th>Minutes Remaining</th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for user in user_list %} 
+    <tr>
+      <td>{{ user.id }}</td>
+      <td>{{ user.name }}</td>
+      <td>{{ user.role }}</td>
+      <td>{{ user.logged_in }}</td>
+      <td><a href="#">{{ user.active_challenge_count }}</a></td>
+      <td>{{ user.time_remaining }}</td>
+      <td>
+        <form action="/logout_user" method="post">
+          <input type="hidden" name="id" value="{{ user.id }}">
+          <div class="field">
+            <div class="control">
+              <button class="button is-link">Log Out</button>
+            </div>
+          </div>
+        </form>
+      </td>
+      <td>
+        <form action="/delete_user" method="post">
+          <input type="hidden" name="id" value="{{ user.id }}">
+          <div class="field">
+            <div class="control">
+              <button class="button is-link is-danger">Delete</button>
+            </div>
+          </div>
+        </form>
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

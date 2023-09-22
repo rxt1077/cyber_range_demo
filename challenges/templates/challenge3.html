@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Challenge 3</h1>
+<div class="block">
+	From a backend perspective, this is the most complicated type of challenge.
+	Instead of using a simple web page or a single container, it uses a group of containers via <a href="https://docs.docker.com/compose/">Docker Compose</a> and allows the participant to VPN into the internal network.
+	This simulates a full environment, but it's going to be pretty hefty in terms of compute requirements.
+	You probably wouldn't want to do it for every challenge.
+</div>
+<div class="block">
+  Use the following <a href="https://www.wireguard.com">WireGuard</a> configuration to connect to the network environment for this challenge:
+</div> 
+<pre class="block">{{ wgconf }}</pre>
+<div class="block">
+  This will give you the IP address on the container network.
+  There are two other containers on the network, one is your VPN server and the other has your flag.
+</div>
+<div class="block">HINT: aznc vf lbhe sevraq</div>
+<form action="/stop_challenge" method="post">
+  <input class="input" type="hidden" name="url" value="/challenge3">
+  <div class="field">
+    <div class="control">
+      <input class="button is-danger" type="submit" value="Stop this Challenge">
+    </div>
+  </div>
+</form>
+{% endblock %}

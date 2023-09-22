@@ -1,0 +1,7 @@
+.navbar {
+  background-image: url("tv_static.jpg")
+}
+
+body, button, input, select, textarea {
+  font-family: Monospace;
+}
