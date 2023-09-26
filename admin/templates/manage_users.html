@@ -3,41 +3,68 @@
 <h1 class="title">Manage Users</h1>
 
 <h2 class="is-size-4">Add User</h2>
-<form action="/add_user" method="post">
+<form action="/manage_users" method="post">
+  {{ form.csrf_token }}
   <div class="columns">
 
+    <!-- Username -->
     <div class="column">
       <div class="field">
-        <label class="label">Username</label>
+        {{ form.username.label(class="label") }}
         <div class="control">
-          <input class="input" type="text" name="username">
+          {% if form.username.errors %}
+          {{ form.username(class="input is-danger") }}
+          {% else %}
+          {{ form.username(class="input") }}
+          {% endif %}
         </div>
+        {% if form.username.errors %}
+          {% for error in form.username.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
 
+    <!-- Password -->
     <div class="column">
       <div class="field">
-        <label class="label">Password</label>
+        {{ form.password.label(class="label") }}
         <div class="control">
-          <input id="password" class="input" type="text" name="password">
+          {% if form.password.errors %}
+          {{ form.password(class="input is-danger") }}
+          {% else %}
+          {{ form.password(class="input") }}
+          {% endif %}
         </div>
+        {% if form.password.errors %}
+          {% for error in form.password.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
 
+    <!-- Role -->
     <div class="column">
       <div class="field">
-        <label class="label">Role</label>
+        {{ form.role.label(class="label") }}
         <div class="control">
           <div class="select">
-            <select name="role">
-              <option value="USER">Standard User</option>
-              <option value="ADMIN">Administrator</option>
-            </select>
+            {% if form.role.errors %}
+            {{ form.role(class="is-danger") }}
+            {% else %}
+            {{ form.role }}
+            {% endif %}
           </div>
         </div>
+        {% if form.role.errors %}
+          {% for error in form.role.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
       </div>
     </div>
-
   </div>
   
   <div class="field is-grouped">
@@ -52,7 +79,7 @@
 </form>
 
 <script>
-/* Function to generate combination of password: https://www.geeksforgeeks.org/how-to-generate-a-random-password-using-javascript */
+/* Function to generate random password: https://www.geeksforgeeks.org/how-to-generate-a-random-password-using-javascript */
 function generatePass() {
     let pass = '';
     let str = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -78,38 +105,18 @@ function generatePass() {
       <th>Active Challenges</th>
       <th>Minutes Remaining</th>
       <th></th>
-      <th></th>
     </tr>
   </thead>
   <tbody>
   {% for user in user_list %} 
     <tr>
-      <td>{{ user.id }}</td>
+      <td>{{ user.id}}</td>
       <td>{{ user.name }}</td>
       <td>{{ user.role }}</td>
       <td>{{ user.logged_in }}</td>
-      <td><a href="#">{{ user.active_challenge_count }}</a></td>
+      <td>{{ user.active_challenge_count }}</td>
       <td>{{ user.time_remaining }}</td>
-      <td>
-        <form action="/logout_user" method="post">
-          <input type="hidden" name="id" value="{{ user.id }}">
-          <div class="field">
-            <div class="control">
-              <button class="button is-link">Log Out</button>
-            </div>
-          </div>
-        </form>
-      </td>
-      <td>
-        <form action="/delete_user" method="post">
-          <input type="hidden" name="id" value="{{ user.id }}">
-          <div class="field">
-            <div class="control">
-              <button class="button is-link is-danger">Delete</button>
-            </div>
-          </div>
-        </form>
-      </td>
+      <td><a href="/edit_user?id={{ user.id }}">Manage</a></td>
     </tr>
   {% endfor %}
   </tbody>

@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Manage Profile</h1>
+<div class="columns">
+  <div class="column">
+    <form method="POST" action="/manage_profile">
+      {{ form.csrf_token }}
+
+      <!-- Password -->
+      <div class="field">
+        {{ form.password.label(class="label") }}
+        <div class="control">
+          {% if form.password.errors %}
+          {{ form.password(class="input is-danger") }}
+          {% else %}
+          {{ form.password(class="input") }}
+          {% endif %}
+        </div>
+        {% if form.password.errors %}
+          {% for error in form.password.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Update and Logout buttons -->
+      <div class="field is-grouped">
+        <div class="control">
+          {{ form.update(class="button is-success") }}
+        </div>
+        <div class="control">
+          {{ form.logout(class="button is-danger") }}
+        </div>
+      </div>
+
+    </form>
+  </div>
+  <div class="column"></div>
+  <div class="column"></div>
+</div>
+{% endblock %}

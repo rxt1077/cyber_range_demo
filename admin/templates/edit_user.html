@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1 class="title">Manage User</h1>
+<div class="columns">
+  <div class="column">
+    <form method="POST" action="/edit_user">
+      {{ form.csrf_token }}
+
+      <!-- User ID -->
+      {{ form.user_id }}
+
+      <!-- Username -->
+      <div class="field">
+        {{ form.username.label(class="label") }}
+        <div class="control">
+          {% if form.username.errors %}
+          {{ form.username(class="input is-danger") }}
+          {% else %}
+          {{ form.username(class="input") }}
+          {% endif %}
+        </div>
+        {% if form.username.errors %}
+          {% for error in form.username.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Password -->
+      <div class="field">
+        {{ form.password.label(class="label") }}
+        <div class="control">
+          {% if form.password.errors %}
+          {{ form.password(class="input is-danger") }}
+          {% else %}
+          {{ form.password(class="input") }}
+          {% endif %}
+        </div>
+        {% if form.password.errors %}
+          {% for error in form.password.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Role -->
+      <div class="field">
+        <label class="label">Role</label>
+        <div class="control">
+          <div class="select">
+            {% if form.role.errors %}
+            {{ form.role(class="input is-danger") }}
+            {% else %}
+            {{ form.role(class="input") }}
+            {% endif %}
+          </div>
+        </div>
+        {% if form.role.errors %}
+          {% for error in form.role.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+
+      <!-- Time Remaining -->
+      {% if form.time_remaining.data %}
+      <div class="field">
+        {{ form.time_remaining.label(class="label") }}
+        <div class="control">
+          {% if form.time_remaining.errors %}
+          {{ form.time_remaining(class="input is-danger") }}
+          {% else %}
+          {{ form.time_remaining(class="input") }}
+          {% endif %}
+        </div>
+        <p class="help">In minutes</p>
+        {% if form.time_remaining.errors %}
+          {% for error in form.time_remaining.errors %}
+          <p class="help is-danger">{{ error }}</p>
+          {% endfor %}
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Update and Logout buttons -->
+      <div class="field is-grouped">
+        <div class="control">
+          {{ form.update(class="button is-success") }}
+        </div>
+        <div class="control">
+          {{ form.logout(class="button is-warning") }}
+        </div>
+        <div class="control">
+          {{ form.delete(class="button is-danger") }}
+        </div>
+      </div>
+
+    </form>
+  </div>
+  <div class="column"></div>
+  <div class="column"></div>
+</div>
+{% endblock %}

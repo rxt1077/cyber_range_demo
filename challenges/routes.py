@@ -1,14 +1,22 @@
+"""Challenge endpoints for starting/stoping/displaying challenges"""
+
 from urllib.parse import urlparse
 
 from flask import Flask, render_template, request, Blueprint, redirect, url_for
 from flask_login import login_required, current_user
 
 import db
-import challenges.docker as docker
+from challenges import docker
 
 MAX_CHALLENGES = 1
 
-challenges_bp = Blueprint('challenges', __name__, template_folder='templates', static_folder='static', static_url_path='') 
+challenges_bp = Blueprint(
+    "challenges",
+    __name__,
+    template_folder="templates",
+    static_folder="static",
+    static_url_path="",
+)
 
 
 @challenges_bp.route("/challenges")
@@ -25,20 +33,22 @@ def challenges():
         return prompt
     return render_template("challenges.html")
 
-@challenges_bp.route("/stop_challenge", methods=['POST'])
+
+@challenges_bp.route("/stop_challenge", methods=["POST"])
 @login_required
 def stop_challenge():
     """Stops a challenge when passed a url"""
-    
+
     user_id = current_user.user_id
-    url = request.form.get('url')
+    url = request.form.get("url")
 
     conn = db.get_connection()
     db.del_challenge(conn, user_id, url)
     conn.commit()
     conn.close()
 
-    return redirect(url_for('challenges.challenges'))
+    return redirect(url_for("challenges.challenges"))
+
 
 @challenges_bp.route("/challenge1")
 @login_required
@@ -54,14 +64,15 @@ def challenge1():
         conn.close()
         abort(403)
 
-    url = '/challenge1'
-    prompt = render_template('challenge1.html')
+    url = "/challenge1"
+    prompt = render_template("challenge1.html")
 
     db.add_challenge(conn, user_id, url, prompt)
     conn.commit()
     conn.close()
 
     return prompt
+
 
 @challenges_bp.route("/challenge2")
 @login_required
@@ -107,10 +118,12 @@ def challenge3():
         abort(403)
 
     hostname = urlparse(request.base_url).hostname
-    client_config, end_cmd = docker.compose_up_with_vpn('challenges/3', hostname)
-    prompt = render_template('challenge3.html', wgconf=client_config)
+    client_config, end_cmd = docker.compose_up_with_vpn("challenges/3", hostname)
+    prompt = render_template("challenge3.html", wgconf=client_config)
 
-    db.add_challenge(conn, user_id, '/challenge3', prompt, end_cmd=end_cmd, cwd='challenges/3')
+    db.add_challenge(
+        conn, user_id, "/challenge3", prompt, end_cmd=end_cmd, cwd="challenges/3"
+    )
     conn.commit()
     conn.close()
 

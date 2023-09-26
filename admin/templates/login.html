@@ -2,9 +2,11 @@
 {% block content %}
 <h1 class="title">Please log in to continue</h1>
 <div class="columns">
-
   <div class="column">
     <form action="/login" method="post">
+      {{ form.csrf_token }}
+
+      <!-- Username -->
       <div class="field">
         <p class="control has-icons-left">
           <input class="input" type="text" placeholder="Username" name="username">
@@ -14,6 +16,7 @@
         </p>
       </div>
 
+      <!-- Password -->
       <div class="field">
         <p class="control has-icons-left">
           <input class="input" type="password" placeholder="Password" name="password">
@@ -23,6 +26,7 @@
         </p>
       </div>
 
+      <!-- Login button -->
       <div class="field">
         <p class="control">
           <input class="button is-success" type="submit" value="Login">

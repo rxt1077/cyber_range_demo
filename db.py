@@ -155,6 +155,22 @@ def get_user_by_name(conn, name):
     return res.fetchone()
 
 
+def update_user(conn, user_id, name, role):
+    """Updates everything _except_ the password of a user"""
+
+    cur = conn.cursor()
+
+    cur.execute("UPDATE users SET name=?, role=? WHERE id=?;",
+                (name, role, user_id))
+
+def update_user_password(conn, user_id, password):
+    """Updates the password field of a user"""
+
+    cur = conn.cursor()
+
+    cur.execute("UPDATE users SET password=? WHERE id=?;", (password, user_id))
+
+
 def set_auto_logout(conn, user_id, duration):
     """Sets a user's automatic logout time"""
 

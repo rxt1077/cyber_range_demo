@@ -1,8 +1,11 @@
+"""Functions for running/managing Docker containers"""
+
 import subprocess
 import re
 import uuid
 
 PROCESS_TIMEOUT = 30
+
 
 def get_port(container_id):
     """Uses the docker command to get the external port for a container
@@ -19,12 +22,13 @@ def get_port(container_id):
         timeout=PROCESS_TIMEOUT,
     )
     # we may get a line for IPv4 and IPv6, we only need one of them
-    first_line = port_process.stdout.partition('\n')[0]
+    first_line = port_process.stdout.partition("\n")[0]
     # match everything after the last :
     result = re.search("^.*:(.*)$", first_line)
     port = result.group(1)
 
     return port
+
 
 def run_with_port(image, container_port):
     """Starts a single container, returning its port and end_cmd"""
@@ -45,6 +49,7 @@ def run_with_port(image, container_port):
 
     return (port, end_cmd)
 
+
 def compose_up_with_vpn(directory, hostname):
     """Runs docker compose up in a particular directory and returns the
     WireGuard config needed to connect to a VPN service in the environment
@@ -56,21 +61,22 @@ def compose_up_with_vpn(directory, hostname):
 
     # bring the whole thing up
     subprocess.run(
-        ['docker', 'compose', '-p', prefix, 'up', '-d'],
+        ["docker", "compose", "-p", prefix, "up", "-d"],
         check=True,
         timeout=PROCESS_TIMEOUT,
         cwd=directory,
     )
 
     # figure out what port was allocated to the service
-    container_id = prefix + '-vpn-1'
+    container_id = prefix + "-vpn-1"
     port = get_port(container_id)
 
     # grab the generated wireguard config for the client from the container
     # logs (stdout)
     log_process = subprocess.run(
-        ['docker', "logs", container_id],
+        ["docker", "logs", container_id],
         capture_output=True,
+        check=True,
         text=True,
         timeout=PROCESS_TIMEOUT,
     )
@@ -78,9 +84,9 @@ def compose_up_with_vpn(directory, hostname):
     client_config = ""
     in_config = False
     for line in log_process.stdout.splitlines():
-        if line == '<ClientConfig>':
+        if line == "<ClientConfig>":
             in_config = True
-        elif line == '</ClientConfig>':
+        elif line == "</ClientConfig>":
             break
         elif in_config:
             client_config += line + "\n"

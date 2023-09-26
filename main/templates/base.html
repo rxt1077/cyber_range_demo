@@ -29,22 +29,39 @@
         </div>
 
         <div class="navbar-end">
-		<div class="navbar-item">{{ current_user.name }} has&nbsp;<span id="time_remaining">{{ current_user.time_remaining }}</span>&nbsp;minutes left</div>
+          <div class="navbar-item">{{ current_user.name }} has&nbsp;<span id="time_remaining">{{ current_user.time_remaining }}</span>&nbsp;minutes left</div>
+          <a class="navbar-item" href="/manage_profile">
+            <span class="icon">
+              <i class="fas fa-user" aria-hidden="true"></i>
+            </span>
+          </a>
         </div>
       </div>
       <script>
-	time_remaining = {{ current_user.time_remaining }};
-	interval = setInterval(function() {
-	  document.getElementById("time_remaining").innerHTML = time_remaining;
-	  time_remaining--;
-          if (time_remaining < 0) {
-	    clearInterval(interval);
-	  }
-	}, 60000);
+        time_remaining = {{ current_user.time_remaining }};
+        interval = setInterval(function() {
+          document.getElementById("time_remaining").innerHTML = time_remaining;
+          time_remaining--;
+                if (time_remaining < 0) {
+            clearInterval(interval);
+          }
+        }, 60000);
       </script>
       {% endif %}
     </nav>
     <section class="section">
+      {% if notification %}
+      <div id="notification" class="notification">
+        <button class="delete" onclick="removeNotification()"></button>
+        {{ notification }}
+      </div>
+      <script>
+        function removeNotification() {
+          element = document.getElementById("notification");
+          element.parentNode.removeChild(element);
+        }
+      </script>
+      {% endif %}
 	    <div class="container">{% block content %}{% endblock %}</div>
     </div>
 </body>

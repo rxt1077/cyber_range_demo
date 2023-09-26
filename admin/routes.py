@@ -1,139 +1,212 @@
 from datetime import datetime, timezone
 
-from flask import Blueprint, render_template, request, redirect, url_for, current_app, abort
-from flask_login import login_required, login_user, current_user
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    current_app,
+    abort,
+)
+from flask_login import login_required, login_user, logout_user, current_user
 from flask_bcrypt import Bcrypt
 
 import db
 from admin.util import User, ROLE_ADMIN, ROLE_USER
+from admin.forms import LoginForm, ManageProfileForm, EditUserForm, AddUserForm
 
-admin_bp = Blueprint('admin', __name__, template_folder='templates')
+admin_bp = Blueprint("admin", __name__, template_folder="templates")
 
-DURATION = 60 # how many minutes to keep a user logged in for
+DURATION = 60  # how many minutes to keep a user logged in
 
-@admin_bp.route('/login')
+
+@admin_bp.route("/login", methods=["GET", "POST"])
 def login():
-    return render_template('login.html')
+    """This endpoint allows a user to log in"""
 
-@admin_bp.route('/login', methods=['POST'])
-def login_post():
-    username = request.form.get('username')
-    password = request.form.get('password')
+    form = LoginForm()
+    notification = None
 
-    conn = db.get_connection()
-    user_row = db.get_user_by_name(conn, username)
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
 
-    if user_row:
+        conn = db.get_connection()
+        user_row = db.get_user_by_name(conn, username)
+
+        user_id = user_row["id"]
+        name = user_row["name"]
+        pw_hash = user_row["password"]
+        role = user_row["role"]
+
         bcrypt = Bcrypt(current_app)
-        user_id = user_row['id']
-        name = user_row['name']
-        pw_hash = user_row['password']
-        role = user_row['role']
         if bcrypt.check_password_hash(pw_hash, password):
             db.set_auto_logout(conn, user_id, DURATION)
             conn.commit()
             conn.close()
-            user = User(user_id=user_id, name=name, role=role, authenticated=True, active=True)
+            user = User(
+                user_id=user_id, name=name, role=role, authenticated=True, active=True
+            )
             login_user(user)
-            return redirect(url_for('main.index'))
+            return redirect(url_for("main.index"))
 
-    conn.close()
-    return render_template('login_error.html')
+        conn.close()
 
-@admin_bp.route('/logout')
+        notification = "Invalid username or password"
+
+    return render_template("login.html", form=form, notification=notification)
+
+
+@admin_bp.route("/manage_profile", methods=["GET", "POST"])
 @login_required
-def logout():
-    conn = db.get_connection()
-    db.clear_auto_logout(conn, current_user.user_id)
-    conn.commit()
-    conn.close()
-    logout_user()
-    return redirect(url_for('admin.login'))
+def manage_profile():
+    """This endpoint allows a user to change their password or to
+    manually log out"""
 
-@admin_bp.route('/add_user', methods=['POST'])
+    form = ManageProfileForm()
+    notification = None
+
+    if form.logout.data:
+        conn = db.get_connection()
+        db.clear_auto_logout(conn, current_user.user_id)
+        conn.commit()
+        conn.close()
+        logout_user()
+        return redirect(url_for("admin.login"))
+
+    if form.validate_on_submit():
+        conn = db.get_connection()
+        bcrypt = Bcrypt(current_app)
+        password = form.password.data
+        pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+        db.update_user_password(conn, current_user.user_id, pw_hash)
+        conn.commit()
+        conn.close()
+        notification = "Profile updated successfully"
+
+    return render_template("manage_profile.html", form=form, notification=notification)
+
+
+@admin_bp.route("/edit_user", methods=["GET"])
 @login_required
-def add_user_post():
+def edit_user_get():
     if current_user.role != ROLE_ADMIN:
         abort(403)
 
-    username = request.form.get('username')
-    password = request.form.get('password')
-    role = request.form.get('role')
-    if role == "ADMIN":
-        role = ROLE_ADMIN
-    else:
-        role = ROLE_USER
+    user_id = request.args.get("id")
 
-    print(username, password, role)
     conn = db.get_connection()
-    db.add_user(conn, username, password, role)
-    conn.commit()
+    user = db.get_user(conn, user_id)
     conn.close()
 
-    return redirect(url_for('admin.manage_users'))
+    form = EditUserForm(
+        username=user["name"],
+        role=user["role"],
+        time_remaining=user["time_remaining"],
+        user_id=user_id,
+    )
 
-@admin_bp.route('/delete_user', methods=['POST'])
+    return render_template("edit_user.html", form=form)
+
+
+@admin_bp.route("/edit_user", methods=["POST"])
 @login_required
-def delete_user():
+def edit_user_post():
     if current_user.role != ROLE_ADMIN:
         abort(403)
 
-    user_id = request.form.get('id')
+    form = EditUserForm()
+    if form.validate():
+        user_id = form.user_id.data
+        username = form.username.data
+        password = form.password.data
+        role = form.role.data
+        time_remaining = form.time_remaining.data
 
-    conn = db.get_connection()
-    db.del_user(conn, user_id)
-    conn.commit()
-    conn.close()
+        conn = db.get_connection()
 
-    return redirect(url_for('admin.manage_users'))
+        if form.logout.data:
+            db.clear_auto_logout(conn, user_id)
+        elif form.delete.data:
+            db.del_user(conn, user_id)
+        else:
+            if password:
+                bcrypt = Bcrypt(current_app)
+                pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+                db.update_user_password(conn, user_id, pw_hash)
+            if time_remaining:
+                db.set_auto_logout(conn, user_id, time_remaining)
+            db.update_user(conn, user_id, username, role)
 
-@admin_bp.route('/logout_user', methods=['POST'])
-@login_required
-def logout_user():
-    if current_user.role != ROLE_ADMIN:
-        abort(403)
+        conn.commit()
+        conn.close()
 
-    user_id = int(request.form.get('id'))
+        return redirect(url_for("admin.manage_users"))
 
-    conn = db.get_connection()
-    db.clear_auto_logout(conn, user_id)
-    conn.commit()
-    conn.close()
+    # re-render the edit_user.html template if we have validation errors
+    return render_template("edit_user.html", form=form)
 
-    return redirect(url_for('admin.manage_users'))
 
-@admin_bp.route('/manage_users')
+@admin_bp.route("/manage_users", methods=["GET", "POST"])
 @login_required
 def manage_users():
+    """This endpoint has a form to add users and a list of current users.
+    POSTS to this endpoint are for add user operations."""
+
     if current_user.role != ROLE_ADMIN:
         abort(403)
 
     conn = db.get_connection()
+
+    form = AddUserForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+        if form.role.data == "ADMIN":
+            role = ROLE_ADMIN
+        else:
+            role = ROLE_USER
+
+        if db.get_user_by_name(conn, username):
+            form.username.errors.append("Username already in use")
+        else:
+            bcrypt = Bcrypt(current_app)
+            pw_hash = bcrypt.generate_password_hash(password).decode("utf-8")
+            db.add_user(conn, username, pw_hash, role)
+            conn.commit()
+            conn.close()
+
+            return redirect(url_for("admin.manage_users"))
+
     user_row = db.get_all_users(conn)
     conn.close()
 
     user_list = []
     for user in user_row:
         # create friendly text for role
-        if user['role'] == ROLE_ADMIN:
+        if user["role"] == ROLE_ADMIN:
             role = "Administrator"
         else:
             role = "User"
 
         # determine if they are logged in or not and time remaining
-        time_remaining = user['time_remaining']
+        time_remaining = user["time_remaining"]
         if time_remaining:
             logged_in = "Yes"
         else:
             logged_in = "No"
             time_remaining = "None"
 
-        user_list.append({
-            'id': user['id'],
-            'name': user['name'],
-            'role': role,
-            'logged_in': logged_in,
-            'time_remaining': time_remaining,
-        })
+        user_list.append(
+            {
+                "id": user["id"],
+                "name": user["name"],
+                "role": role,
+                "logged_in": logged_in,
+                "time_remaining": time_remaining,
+            }
+        )
 
-    return render_template('manage_users.html', user_list=user_list)
+    return render_template("manage_users.html", form=form, user_list=user_list)

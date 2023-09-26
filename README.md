@@ -5,6 +5,7 @@
 Make sure this is run as a non-root user with access to Docker (in the docker group).
 Your environment will need SECRET_KEY defined for signing session cookies.
 You can put it in a `.env` file and generate it via `python -c 'import secrets; print(secrets.token_hex())'`
+You environment will also need a DEFAULT_ADMIN_PASSWORD set.
 
 ## Python packages
 
@@ -28,7 +29,7 @@ They can be rebuilt at any time and new environments will use the updated images
 
 ## Running via the Flask development server
 
-`flask --app server.py run`
+`flask run`
 
 ## Running via gunicorn
 
