@@ -1,8 +1,8 @@
-"""Challenge endpoints for starting/stoping/displaying challenges"""
+"""Challenge endpoints for starting/stopping/displaying challenges"""
 
 from urllib.parse import urlparse
 
-from flask import Flask, render_template, request, Blueprint, redirect, url_for
+from flask import Flask, render_template, request, Blueprint, redirect, url_for, abort
 from flask_login import login_required, current_user
 
 import db
@@ -30,7 +30,7 @@ def challenges():
     conn.close()
 
     if prompt:
-        return prompt
+        return render_template("challenge.html", prompt=prompt)
     return render_template("challenges.html")
 
 
@@ -71,7 +71,7 @@ def challenge1():
     conn.commit()
     conn.close()
 
-    return prompt
+    return render_template("challenge.html", prompt=prompt)
 
 
 @challenges_bp.route("/challenge2")
@@ -99,7 +99,7 @@ def challenge2():
     conn.commit()
     conn.close()
 
-    return prompt
+    return render_template("challenge.html", prompt=prompt)
 
 
 @challenges_bp.route("/challenge3")
@@ -127,4 +127,4 @@ def challenge3():
     conn.commit()
     conn.close()
 
-    return prompt
+    return render_template("challenge.html", prompt=prompt)
