@@ -95,7 +95,7 @@ def challenge2():
     hostname = urlparse(request.base_url).hostname
     prompt = render_template("challenge2.html", hostname=hostname, port=port)
 
-    db.add_challenge(conn, user_id, "/challenge2", prompt, end_cmd)
+    db.add_challenge(conn, user_id, "/challenge2", prompt, end_cmd=end_cmd)
     conn.commit()
     conn.close()
 
