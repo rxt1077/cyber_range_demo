@@ -7,6 +7,7 @@ from flask_login import login_required, current_user
 
 import db
 from challenges import docker
+from challenges.decorators import challenge
 
 MAX_CHALLENGES = 1
 
@@ -18,9 +19,7 @@ challenges_bp = Blueprint(
     static_url_path="",
 )
 
-
 @challenges_bp.route("/challenges")
-@login_required
 def challenges():
     """An endpoint that shows a user's active challenge or lists available
     challenges if they haven't activated one."""
@@ -51,80 +50,54 @@ def stop_challenge():
 
 
 @challenges_bp.route("/challenge1")
-@login_required
-def challenge1():
+@challenge
+def challenge1(conn, user_id, hostname):
     """A simple challenge endpoint that just uses an HTML template"""
 
-    user_id = current_user.user_id
-
-    conn = db.get_connection()
-
-    # if the user already has a challenge open give an error
-    if db.get_challenge_count(conn, user_id) >= MAX_CHALLENGES:
-        conn.close()
-        abort(403)
-
-    url = "/challenge1"
     prompt = render_template("challenge1.html")
-
-    db.add_challenge(conn, user_id, url, prompt)
-    conn.commit()
-    conn.close()
-
-    return render_template("challenge.html", prompt=prompt)
+    db.add_challenge(conn, user_id, "/challenge1", prompt)
+    return prompt
 
 
 @challenges_bp.route("/challenge2")
-@login_required
-def challenge2():
+@challenge
+def challenge2(conn, user_id, hostname):
     """A challenge endpoint that runs a single-container environment"""
 
-    user_id = current_user.user_id
-
-    conn = db.get_connection()
-
-    # if the user already has a challenge open give an error
-    if db.get_challenge_count(conn, user_id) >= MAX_CHALLENGES:
-        conn.close()
-        abort(403)
-
-    print("Creating a single-container environment for challenge2")
     port, end_cmd = docker.run_with_port("challenge2", 80)
-
-    # this template needs our hostname and the port to tell the user where to connect
-    hostname = urlparse(request.base_url).hostname
     prompt = render_template("challenge2.html", hostname=hostname, port=port)
-
     db.add_challenge(conn, user_id, "/challenge2", prompt, end_cmd=end_cmd)
-    conn.commit()
-    conn.close()
-
-    return render_template("challenge.html", prompt=prompt)
+    return prompt
 
 
 @challenges_bp.route("/challenge3")
-@login_required
-def challenge3():
+@challenge
+def challenge3(conn, user_id, hostname):
     """A challenge endpoint that runs a multi-container environment that the
     user can VPN into"""
 
-    user_id = current_user.user_id
-
-    conn = db.get_connection()
-
-    # if the user already has a challenge open give an error
-    if db.get_challenge_count(conn, user_id) >= MAX_CHALLENGES:
-        conn.close()
-        abort(403)
-
-    hostname = urlparse(request.base_url).hostname
     client_config, end_cmd = docker.compose_up_with_vpn("challenges/3", hostname)
     prompt = render_template("challenge3.html", wgconf=client_config)
-
     db.add_challenge(
         conn, user_id, "/challenge3", prompt, end_cmd=end_cmd, cwd="challenges/3"
     )
-    conn.commit()
-    conn.close()
+    return prompt
 
-    return render_template("challenge.html", prompt=prompt)
+@challenges_bp.route("/challenge4")
+@challenge
+def challenge4(conn, user_id, hostname):
+    """Another simple template challenge"""
+
+    prompt = render_template("challenge4.html")
+    db.add_challenge(conn, user_id, "/challenge4", prompt)
+    return prompt
+
+@challenges_bp.route("/challenge5")
+@challenge
+def challenge5(conn, user_id, hostname):
+    """Single container challenge involving a .htaccess file"""
+
+    port, end_cmd = docker.run_with_port("challenge5", 80)
+    prompt = render_template("challenge5.html", hostname=hostname, port=port)
+    db.add_challenge(conn, user_id, "/challenge5", prompt, end_cmd=end_cmd)
+    return prompt

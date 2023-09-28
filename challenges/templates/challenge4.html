@@ -1,0 +1,15 @@
+<h1 class="title">Challenge 2</h1>
+<div class="block">The flag for this challenge is right here:</div>
+<div id="flag" class="block">DomoArigatoMrRoboto</div>
+<script>
+  flag = document.getElementById("flag");
+  flag.innerHTML = "Ha ha ha, no flag for you!";
+</script>
+<form action="/stop_challenge" method="post">
+  <input class="input" type="hidden" name="url" value="/challenge4">
+  <div class="field">
+    <div class="control">
+      <input class="button is-danger" type="submit" value="Stop this Challenge">
+    </div>
+  </div>
+</form>
