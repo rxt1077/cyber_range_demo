@@ -11,6 +11,7 @@ from flask_login import LoginManager
 from admin.util import load_user, ROLE_ADMIN
 from admin.routes import admin_bp
 from challenges.routes import challenges_bp
+from leaderboard.routes import leaderboard_bp
 import db
 from main.routes import main_bp
 from scheduler import cleanup
@@ -60,5 +61,6 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp)
     app.register_blueprint(challenges_bp)
+    app.register_blueprint(leaderboard_bp)
 
     return app

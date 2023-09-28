@@ -41,7 +41,27 @@ def init(conn):
           password TEXT NOT NULL,
           role INTEGER NOT NULL DEFAULT 0,
           auto_logout_time TIMESTAMP DEFAULT NULL
-        )
+        );
+
+        DROP TABLE IF EXISTS flags;
+
+        CREATE TABLE flags (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL
+        );
+
+        INSERT INTO flags (id, name) VALUES ("piccadilly_circus", "Challenge 1"); 
+
+        DROP TABLE IF EXISTS captures;
+
+        CREATE TABLE captures (
+          flag_id TEXT NOT NULL,
+          user_id INTEGER NOT NULL,
+          PRIMARY KEY (flag_id, user_id)
+          FOREIGN KEY(user_id) REFERENCES users(id)
+          FOREIGN KEY(flag_id) REFERENCES flags(id)
+        );
+
     """
     )
 
@@ -201,4 +221,44 @@ def get_expired_users(conn):
     res = cur.execute(
         "SELECT id FROM users WHERE auto_logout_time < CURRENT_TIMESTAMP;"
     )
+    return res.fetchall()
+
+def get_flag(conn, flag):
+    """Returns a flag from the flags table if it exists"""
+
+    cur = conn.cursor()
+
+    res = cur.execute("SELECT id, name FROM flags WHERE id=?;", (flag,))
+
+    return res.fetchone()
+
+def get_captured_flags(conn, user_id):
+    """Returns the flag IDs a user has captured"""
+
+    cur = conn.cursor()
+
+    res = cur.execute("SELECT flag_id FROM captures WHERE user_id=?;", (user_id,))
+
+    return res.fetchall()
+
+def capture_flag(conn, user_id, flag):
+    """Adds a captured flag to the captures table"""
+
+    cur = conn.cursor()
+
+    cur.execute("INSERT INTO captures (user_id, flag_id) VALUES (?, ?);", (user_id, flag))
+
+def get_leaderboard(conn):
+    """Gets the data needed to make a leaderboard display"""
+
+    cur = conn.cursor()
+
+    res = cur.execute("""
+        SELECT users.name, GROUP_CONCAT(flags.name, ', ') AS captured, COUNT(users.id) AS total
+        FROM captures, flags, users
+        WHERE captures.flag_id=flags.id AND captures.user_id=users.id
+        GROUP BY users.id
+        ORDER BY total DESC;
+        """)
+
     return res.fetchall()
