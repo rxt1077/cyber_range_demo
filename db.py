@@ -87,6 +87,14 @@ def del_challenge(conn, user_id, url):
     cur.execute("DELETE FROM challenges WHERE user_id=? and url=?;", (user_id, url))
 
 
+def get_challenge(conn, user_id, url):
+    """Gets a challenge based on user_id and url"""
+    
+    cur = conn.cursor()
+    res = cur.execute("SELECT end_cmd, cwd FROM challenges WHERE user_id=? AND url=?;", (user_id, url))
+    return res.fetchone()
+
+
 def get_challenge_count(conn, user_id):
     """Returns an integer of how many challenges a user has active"""
 

@@ -33,4 +33,4 @@ They can be rebuilt at any time and new environments will use the updated images
 
 ## Running via gunicorn
 
-`gunicorn -w 1 -b 0.0.0.0 'server:app'`
+`gunicorn -w 1 -b 0.0.0.0 'app:create_app()'`
