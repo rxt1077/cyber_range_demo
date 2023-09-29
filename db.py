@@ -113,16 +113,13 @@ def get_user_challenges(conn, user_id):
     return res.fetchall()
 
 
-def get_active_challenge_prompt(conn, user_id):
+def get_active_challenge(conn, user_id):
     """Returns prompt of the active challenge on None"""
 
     cur = conn.cursor()
-    res = cur.execute("SELECT prompt FROM challenges WHERE user_id=?", (user_id,))
+    res = cur.execute("SELECT prompt, url FROM challenges WHERE user_id=?", (user_id,))
 
-    row = res.fetchone()
-    if row:
-        return row["prompt"]
-    return None
+    return res.fetchone()
 
 
 def add_user(conn, name, password, role):

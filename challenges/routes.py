@@ -27,11 +27,14 @@ def challenges():
     challenges if they haven't activated one."""
 
     conn = db.get_connection()
-    prompt = db.get_active_challenge_prompt(conn, current_user.user_id)
+    challenge_row = db.get_active_challenge(conn, current_user.user_id)
     conn.close()
 
-    if prompt:
-        return render_template("challenge.html", prompt=prompt)
+    if challenge_row:
+        prompt = challenge_row['prompt']
+        url = challenge_row['url']
+        form = StopChallengeForm(url=url)
+        return render_template("challenge.html", prompt=prompt, form=form)
     return render_template("challenges.html")
 
 
