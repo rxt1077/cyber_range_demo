@@ -51,6 +51,10 @@ def init(conn):
         );
 
         INSERT INTO flags (id, name) VALUES ("piccadilly_circus", "Challenge 1"); 
+        INSERT INTO flags (id, name) VALUES ("DirBusted", "Challenge 2"); 
+        INSERT INTO flags (id, name) VALUES ("WALLABY", "Challenge 3"); 
+        INSERT INTO flags (id, name) VALUES ("DomoArigatoMrRoboto", "Challenge 4"); 
+        INSERT INTO flags (id, name) VALUES ("RedTeamRewriteRule", "Challenge 5"); 
 
         DROP TABLE IF EXISTS captures;
 
