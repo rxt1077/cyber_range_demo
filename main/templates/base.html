@@ -23,8 +23,13 @@
           {% if current_user.role == 1 %}
           <a class="navbar-item" href="/manage_users">Manage Users</a>
           {% endif %}
+	  
+	  {% if current_user.active_challenge %}
+	  <a class="navbar-item" href="/active_challenge">{{ current_user.active_challenge }}</a>
+	  {% else %}
+	  <a class="navbar-item" href="/list_challenges">Challenges</a>
+	  {% endif %}
 
-          <a class="navbar-item" href="/challenges">Challenges</a>
           <a class="navbar-item" href="/leaderboard">Leaderboard</a>
           
         </div>

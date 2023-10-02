@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="section">
+  {{ prompt|safe }}
+</section>
+
+<section class="section">
+  <h1 class="title">Submit a Flag</h1>
+  <form method="POST" action="/active_challenge">
+    {{ form.csrf_token }}
+
+    <div class="field is-grouped">
+      <div class="control">
+        {% if form.flag.errors %}
+        {{ form.flag(class="input is-danger") }}
+        {% else %}
+        {{ form.flag(class="input") }}
+        {% endif %}
+      </div>
+      <div class="control">
+        {{ form.capture(class="button is-success") }}
+      </div>
+      <div class="control">
+        {{ form.stop(class="button is-danger") }}
+      </div>
+    </div>
+    {% if form.flag.errors %}
+      {% for error in form.flag.errors %}
+        <p class="help is-danger">{{ error }}</p>
+      {% endfor %}
+    {% endif %}
+  </form>
+</section>
+{% endblock %}

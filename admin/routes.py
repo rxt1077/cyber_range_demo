@@ -13,7 +13,7 @@ from flask_login import login_required, login_user, logout_user, current_user
 from flask_bcrypt import Bcrypt
 
 import db
-from admin.util import User, ROLE_ADMIN, ROLE_USER
+from admin.users import User, ROLE_ADMIN, ROLE_USER
 from admin.forms import LoginForm, ManageProfileForm, EditUserForm, AddUserForm
 
 admin_bp = Blueprint("admin", __name__, template_folder="templates")
@@ -34,6 +34,8 @@ def login():
 
         conn = db.get_connection()
         user_row = db.get_user_by_name(conn, username)
+
+        #TODO: What if they don't exist?
 
         user_id = user_row["id"]
         name = user_row["name"]

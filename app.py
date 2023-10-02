@@ -8,7 +8,7 @@ from flask import Flask
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 
-from admin.util import load_user, ROLE_ADMIN
+from admin.users import load_user, ROLE_ADMIN
 from admin.routes import admin_bp
 from challenges.routes import challenges_bp
 from leaderboard.routes import leaderboard_bp

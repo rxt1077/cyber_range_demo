@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<h1 class="title">Challenges</h1>
+<div class="block">Please start a challenge from the list below.</div>
+<ul>
+  {% for challenge in challenge_list %}
+  <li><a href="/start_challenge?id={{ challenge.id }}">{{ challenge.name }}: {{ challenge.description }}</a></li>
+  {% endfor %}
+</ul>
+
+{% endblock %}

@@ -25,11 +25,12 @@ def init(conn):
 
         CREATE TABLE challenges (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
-          user_id INTEGER NOT NULL,
-          url TEXT NOT NULL,
+          user_id INTEGER UNIQUE NOT NULL,
+          name TEXT,
           prompt TEXT NOT NULL,
           end_cmd TEXT,
           cwd TEXT,
+          flag TEXT,
           FOREIGN KEY(user_id) REFERENCES users(id)
         );
 
@@ -43,82 +44,41 @@ def init(conn):
           auto_logout_time TIMESTAMP DEFAULT NULL
         );
 
-        DROP TABLE IF EXISTS flags;
-
-        CREATE TABLE flags (
-          id TEXT PRIMARY KEY,
-          name TEXT NOT NULL
-        );
-
-        INSERT INTO flags (id, name) VALUES ("piccadilly_circus", "Challenge 1"); 
-        INSERT INTO flags (id, name) VALUES ("DirBusted", "Challenge 2"); 
-        INSERT INTO flags (id, name) VALUES ("WALLABY", "Challenge 3"); 
-        INSERT INTO flags (id, name) VALUES ("DomoArigatoMrRoboto", "Challenge 4"); 
-        INSERT INTO flags (id, name) VALUES ("RedTeamRewriteRule", "Challenge 5"); 
-
         DROP TABLE IF EXISTS captures;
 
         CREATE TABLE captures (
-          flag_id TEXT NOT NULL,
           user_id INTEGER NOT NULL,
-          PRIMARY KEY (flag_id, user_id)
+          name TEXT,
+          PRIMARY KEY (user_id, name)
           FOREIGN KEY(user_id) REFERENCES users(id)
-          FOREIGN KEY(flag_id) REFERENCES flags(id)
         );
 
     """
     )
 
 
-def add_challenge(conn, user_id, url, prompt, end_cmd=None, cwd=None):
+def add_challenge(conn, user_id, name, prompt, end_cmd, cwd, flag):
     """Adds an active challenge to the challenges table"""
 
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO challenges (user_id, url, prompt, end_cmd, cwd) VALUES (?, ?, ?, ?, ?);",
-        (user_id, url, prompt, end_cmd, cwd),
+        "INSERT INTO challenges (user_id, name, prompt, end_cmd, cwd, flag) VALUES (?, ?, ?, ?, ?, ?);",
+        (user_id, name, prompt, end_cmd, cwd, flag),
     )
 
 
-def del_challenge(conn, user_id, url):
-    """Deletes a challenge based on user_id and url"""
+def del_challenge(conn, user_id):
+    """Deletes the active challenge based on user_id"""
 
     cur = conn.cursor()
-    cur.execute("DELETE FROM challenges WHERE user_id=? and url=?;", (user_id, url))
+    cur.execute("DELETE FROM challenges WHERE user_id=?;", (user_id,))
 
 
-def get_challenge(conn, user_id, url):
-    """Gets a challenge based on user_id and url"""
+def get_challenge(conn, user_id):
+    """Gets the active challenge based on user_id"""
     
     cur = conn.cursor()
-    res = cur.execute("SELECT end_cmd, cwd FROM challenges WHERE user_id=? AND url=?;", (user_id, url))
-    return res.fetchone()
-
-
-def get_challenge_count(conn, user_id):
-    """Returns an integer of how many challenges a user has active"""
-
-    cur = conn.cursor()
-    res = cur.execute("SELECT COUNT(id) FROM challenges WHERE user_id=?;", (user_id,))
-    return res.fetchone()[0]
-
-
-def get_user_challenges(conn, user_id):
-    """Returns a list of active challenges for a user"""
-
-    cur = conn.cursor()
-    res = cur.execute(
-        "SELECT url, end_cmd, cwd FROM challenges WHERE user_id=?;", (user_id,)
-    )
-    return res.fetchall()
-
-
-def get_active_challenge(conn, user_id):
-    """Returns prompt of the active challenge on None"""
-
-    cur = conn.cursor()
-    res = cur.execute("SELECT prompt, url FROM challenges WHERE user_id=?", (user_id,))
-
+    res = cur.execute("SELECT * FROM challenges WHERE user_id=?;", (user_id,))
     return res.fetchone()
 
 
@@ -232,30 +192,20 @@ def get_expired_users(conn):
     )
     return res.fetchall()
 
-def get_flag(conn, flag):
-    """Returns a flag from the flags table if it exists"""
+def get_capture(conn, user_id, name):
+    """Returns a capture row if a challenge has already been completed by a user"""
 
     cur = conn.cursor()
 
-    res = cur.execute("SELECT id, name FROM flags WHERE id=?;", (flag,))
-
+    res = cur.execute("SELECT * FROM captures WHERE user_id=? AND name=?;", (user_id, name))
     return res.fetchone()
 
-def get_captured_flags(conn, user_id):
-    """Returns the flag IDs a user has captured"""
-
-    cur = conn.cursor()
-
-    res = cur.execute("SELECT flag_id FROM captures WHERE user_id=?;", (user_id,))
-
-    return res.fetchall()
-
-def capture_flag(conn, user_id, flag):
+def capture_flag(conn, user_id, name):
     """Adds a captured flag to the captures table"""
 
     cur = conn.cursor()
 
-    cur.execute("INSERT INTO captures (user_id, flag_id) VALUES (?, ?);", (user_id, flag))
+    cur.execute("INSERT INTO captures (user_id, name) VALUES (?, ?);", (user_id, name))
 
 def get_leaderboard(conn):
     """Gets the data needed to make a leaderboard display"""
@@ -263,10 +213,10 @@ def get_leaderboard(conn):
     cur = conn.cursor()
 
     res = cur.execute("""
-        SELECT users.name, GROUP_CONCAT(flags.name, ', ') AS captured, COUNT(users.id) AS total
-        FROM captures, flags, users
-        WHERE captures.flag_id=flags.id AND captures.user_id=users.id
-        GROUP BY users.id
+        SELECT users.name, GROUP_CONCAT(captures.name, ', ') AS captured, COUNT(user_id) AS total
+        FROM captures, users
+        WHERE user_id=users.id
+        GROUP BY user_id
         ORDER BY total DESC;
         """)
 

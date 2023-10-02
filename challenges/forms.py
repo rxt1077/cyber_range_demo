@@ -1,5 +1,11 @@
-from flask_wtf import FlaskForm
-from wtforms import HiddenField
+"""Form used by the challenges"""
 
-class StopChallengeForm(FlaskForm):
-    url = HiddenField()
+from flask_wtf import FlaskForm
+from wtforms import HiddenField, StringField, SubmitField
+
+class ChallengeForm(FlaskForm):
+    """Basic form for submitting a flag"""
+
+    flag = StringField("Flag")
+    capture = SubmitField("Capture")
+    stop = SubmitField("Stop this Challenge")
