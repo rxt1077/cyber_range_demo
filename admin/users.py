@@ -61,6 +61,7 @@ def load_user(user_id):
         name = user["name"]
         role = user["role"]
         time_remaining = user["time_remaining"]
+        print(f"time_remaining={ time_remaining }")
         # users that have NULL time remaining are logged out
         if time_remaining:
             challenge = db.get_challenge(conn, user_id)
@@ -68,7 +69,6 @@ def load_user(user_id):
                 active_challenge = challenge["name"]
             else:
                 active_challenge = None
-            print(f"active_challenge={active_challenge}")
             return User(
                 user_id=user_id,
                 name=name,

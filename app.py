@@ -53,6 +53,9 @@ def create_app():
         db_conn.commit()
         db_conn.close()
 
+    # run cleanup immediately incase users have expired since we shutdown
+    cleanup()
+
     # schedule cleanup() to run every minute
     scheduler = BackgroundScheduler()
     scheduler.add_job(func=cleanup, trigger="interval", seconds=60)

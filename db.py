@@ -219,7 +219,7 @@ def get_leaderboard(conn):
 
     res = cur.execute(
         """
-        SELECT users.name, GROUP_CONCAT(captures.name, ', ') AS captured, COUNT(user_id) AS total
+        SELECT users.name, GROUP_CONCAT(captures.name) AS captured, COUNT(user_id) AS total
         FROM captures, users
         WHERE user_id=users.id
         GROUP BY user_id

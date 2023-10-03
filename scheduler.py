@@ -23,6 +23,5 @@ def cleanup():
             if end_cmd:
                 subprocess.run(end_cmd, shell=True, cwd=cwd, timeout=PROCESS_TIMEOUT, check=True)
             db.del_challenge(conn, user_id)
-            conn.commit()
-
+        conn.commit()
     conn.close()

@@ -13,7 +13,13 @@
     {% for row in leaderboard %}
     <tr>
       <td>{{ row.name }}</td>
-      <td>{{ row.captured }}</td>
+      <td>
+	<ul>
+          {% for challenge_name in row.captured.split(',') %}
+          <li>{{ challenge_name }}</li>
+	  {% endfor %}
+	</ul>
+      </td>
       <td>{{ row.total }}</td>
     </tr>
     {% endfor %}
