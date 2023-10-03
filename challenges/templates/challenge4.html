@@ -1,7 +1,35 @@
 <h1 class="title">Challenge 4</h1>
-<div class="block">The flag for this challenge is right here:</div>
-<div id="flag" class="block">DomoArigatoMrRoboto</div>
+<div class="block">The flag for this challenge is right here (but it's encrypted):</div>
+<div id="flag_div" class="block">OXLDghFVmfxmHXFpkrf</div>
 <script>
-  flag = document.getElementById("flag");
-  flag.innerHTML = "Ha ha ha, no flag for you!";
+  const CHARACTERS = "01233456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const OTP = "ayoeGQmEbM8Af5gdWYR";
+
+  function encrypt(flag) {
+    result = "";
+    for (let i = 0; i < flag.length; i++) {
+      flag_index = CHARACTERS.indexOf(flag.charAt(i));
+      otp_index = CHARACTERS.indexOf(OTP.charAt(i));
+      new_index = flag_index + otp_index;
+      if (new_index > CHARACTERS.length) {
+        new_index -= CHARACTERS.length;
+      }
+      result += CHARACTERS.charAt(new_index);
+    }
+    return result
+  }
+
+  function decrypt(flag) {
+    result = "";
+    for (let i = 0; i < flag.length; i++) {
+      flag_index = CHARACTERS.indexOf(flag.charAt(i));
+      otp_index = CHARACTERS.indexOf(OTP.charAt(i));
+      new_index = flag_index - otp_index;
+      if (new_index < 0) {
+	new_index += CHARACTERS.length;
+      }
+      result += CHARACTERS.charAt(new_index);
+    }
+    return result
+  }
 </script>
