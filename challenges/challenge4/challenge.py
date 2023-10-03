@@ -2,10 +2,10 @@
 
 from flask import render_template
 
-# Every challenge needs a unique name, flag, and description
-name         = "Challenge 4"
-flag         = "DomoArigatoMrRoboto"
-description  = "Another simple HTML/JS challenge"
+# Every challenge needs a unique NAME, FLAG, and DESCRIPTION
+NAME         = "Challenge 4"
+FLAG         = "DomoArigatoMrRoboto"
+DESCRIPTION  = "Another simple HTML/JS challenge"
 
 def start(conn, user_id, hostname):
     """The start function gets conn, user_id, hostname, and url and should

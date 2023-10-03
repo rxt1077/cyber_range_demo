@@ -76,7 +76,7 @@ def del_challenge(conn, user_id):
 
 def get_challenge(conn, user_id):
     """Gets the active challenge based on user_id"""
-    
+
     cur = conn.cursor()
     res = cur.execute("SELECT * FROM challenges WHERE user_id=?;", (user_id,))
     return res.fetchone()
@@ -149,8 +149,8 @@ def update_user(conn, user_id, name, role):
 
     cur = conn.cursor()
 
-    cur.execute("UPDATE users SET name=?, role=? WHERE id=?;",
-                (name, role, user_id))
+    cur.execute("UPDATE users SET name=?, role=? WHERE id=?;", (name, role, user_id))
+
 
 def update_user_password(conn, user_id, password):
     """Updates the password field of a user"""
@@ -192,13 +192,17 @@ def get_expired_users(conn):
     )
     return res.fetchall()
 
+
 def get_capture(conn, user_id, name):
     """Returns a capture row if a challenge has already been completed by a user"""
 
     cur = conn.cursor()
 
-    res = cur.execute("SELECT * FROM captures WHERE user_id=? AND name=?;", (user_id, name))
+    res = cur.execute(
+        "SELECT * FROM captures WHERE user_id=? AND name=?;", (user_id, name)
+    )
     return res.fetchone()
+
 
 def capture_flag(conn, user_id, name):
     """Adds a captured flag to the captures table"""
@@ -207,17 +211,20 @@ def capture_flag(conn, user_id, name):
 
     cur.execute("INSERT INTO captures (user_id, name) VALUES (?, ?);", (user_id, name))
 
+
 def get_leaderboard(conn):
     """Gets the data needed to make a leaderboard display"""
 
     cur = conn.cursor()
 
-    res = cur.execute("""
+    res = cur.execute(
+        """
         SELECT users.name, GROUP_CONCAT(captures.name, ', ') AS captured, COUNT(user_id) AS total
         FROM captures, users
         WHERE user_id=users.id
         GROUP BY user_id
         ORDER BY total DESC;
-        """)
+        """
+    )
 
     return res.fetchall()

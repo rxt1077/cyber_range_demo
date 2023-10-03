@@ -4,10 +4,10 @@ from flask import render_template
 
 from challenges import docker
 
-# Every challenge needs a unique interger id, unique name, flag, and description
-name         = "Challenge 2"
-flag         = "DirBusted"
-description  = "We're running a containerized webserver for this one"
+# Every challenge needs a unique NAME, FLAG, and DESCRIPTION
+NAME         = "Challenge 2"
+FLAG         = "DirBusted"
+DESCRIPTION  = "We're running a containerized webserver for this one"
 
 def start(conn, user_id, hostname):
     """The start function gets conn, user_id, hostname, and url and should

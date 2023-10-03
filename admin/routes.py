@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+"""Routes for systems administration"""
 
 from flask import (
     Blueprint,
@@ -35,7 +35,8 @@ def login():
         conn = db.get_connection()
         user_row = db.get_user_by_name(conn, username)
 
-        #TODO: What if they don't exist?
+        # TODO: What if they don't exist?
+        # TODO: What if they're already logged in?
 
         user_id = user_row["id"]
         name = user_row["name"]
@@ -93,6 +94,8 @@ def manage_profile():
 @admin_bp.route("/edit_user", methods=["GET"])
 @login_required
 def edit_user_get():
+    """This endpoint servers the form used by an admin to edit a user"""
+
     if current_user.role != ROLE_ADMIN:
         abort(403)
 
@@ -115,6 +118,8 @@ def edit_user_get():
 @admin_bp.route("/edit_user", methods=["POST"])
 @login_required
 def edit_user_post():
+    """This endpoint accepts POST requests to change user information"""
+
     if current_user.role != ROLE_ADMIN:
         abort(403)
 

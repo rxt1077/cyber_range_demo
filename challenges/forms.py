@@ -1,7 +1,7 @@
 """Form used by the challenges"""
 
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, StringField, SubmitField
+from wtforms import StringField, SubmitField
 
 class ChallengeForm(FlaskForm):
     """Basic form for submitting a flag"""

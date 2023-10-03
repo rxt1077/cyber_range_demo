@@ -49,8 +49,8 @@ def list_challenges():
         chal_list.append(
             {
                 "id": index,
-                "name": chal.name,
-                "description": chal.description,
+                "name": chal.NAME,
+                "description": chal.DESCRIPTION,
             }
         )
     return render_template("list_challenges.html", challenge_list=chal_list)
@@ -131,7 +131,7 @@ def start_challenge():
 
     # add the challenge to the DB
     db.add_challenge(
-        conn, user_id, challenge.name, prompt, end_cmd, cwd, challenge.flag
+        conn, user_id, challenge.NAME, prompt, end_cmd, cwd, challenge.FLAG
     )
     conn.commit()
     conn.close()
