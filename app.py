@@ -1,4 +1,4 @@
-"""Flask app for an office cybersecurity practice range"""
+"""Flask app for a cybersecurity practice range"""
 
 import os
 
@@ -37,24 +37,27 @@ def create_app():
     login_manager.login_view = "admin.login"
 
     # create the DB if it isn't there
-    if not os.path.isfile(db.DB_FILE):
-        print(f"{db.DB_FILE} not found, initializing a new database")
-        db_conn = db.get_connection()
-        db.init(db_conn)
-        # add a default admin
-        db.add_user(
-            db_conn,
-            "admin",
-            bcrypt.generate_password_hash(os.getenv("DEFAULT_ADMIN_PASSWORD")).decode(
-                "utf-8"
-            ),
-            ROLE_ADMIN,
-        )
-        db_conn.commit()
-        db_conn.close()
+    db_file = os.getenv("DB_FILE")
+    with app.app_context():
+        app.config['DB_FILE'] = db_file
+        if not os.path.isfile(db_file):
+            print(f"{db_file} not found, initializing a new database")
+            db_conn = db.get_connection()
+            db.init(db_conn)
+            # add a default admin
+            db.add_user(
+                db_conn,
+                "admin",
+                bcrypt.generate_password_hash(os.getenv("DEFAULT_ADMIN_PASSWORD")).decode(
+                    "utf-8"
+                ),
+                ROLE_ADMIN,
+            )
+            db_conn.commit()
+            db_conn.close()
 
-    # run cleanup immediately incase users have expired since we shutdown
-    cleanup()
+        # run cleanup immediately incase users have expired since we shutdown
+        cleanup()
 
     # schedule cleanup() to run every minute
     scheduler = BackgroundScheduler()

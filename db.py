@@ -1,14 +1,13 @@
 """Database functions"""
 
 import sqlite3
-
-DB_FILE = "database.db"
+from flask import current_app
 
 
 def get_connection():
     """Gets a connection to the database stored in db_name"""
-
-    conn = sqlite3.connect(DB_FILE)
+    
+    conn = sqlite3.connect(current_app.config['DB_FILE'])
     conn.row_factory = sqlite3.Row
     conn.set_trace_callback(print)
     return conn

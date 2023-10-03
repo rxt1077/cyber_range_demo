@@ -3,6 +3,7 @@
 ## User environment
 
 Make sure this is run as a non-root user with access to Docker (in the docker group).
+You will need to define a DB_FILE where you want the sqlite3 database file.
 Your environment will need SECRET_KEY defined for signing session cookies.
 You can put it in a `.env` file and generate it via `python -c 'import secrets; print(secrets.token_hex())'`
 You environment will also need a DEFAULT_ADMIN_PASSWORD set.
@@ -34,3 +35,8 @@ They can be rebuilt at any time and new environments will use the updated images
 ## Running via gunicorn
 
 `gunicorn -w 1 -b 0.0.0.0 'app:create_app()'`
+
+## Tests
+
+The beginnings of a test suite can be run with `python3 -m pytest` in the project root.
+It may take a long time to run as it starts, stops, starts, and submits a flag for each challenge.
